@@ -1,0 +1,15 @@
+[general]
+verbosity = 2
+ignore-merge-commits=true
+ignore-fixup-commits=false
+ignore-squash-commits=false
+ignore=body-is-missing
+
+[title-max-length]
+line-length=72
+
+[B1]
+line-length=80
+
+[B5]
+min-length=0

@@ -1,0 +1,11 @@
+steps:
+  # This is a hacky step in order to allow the common tools to use itself to test itself
+  - label: Generate generic checks for self
+    command: ./common/pipelines/generic_checks.sh --tools-plugin-version $BUILDKITE_COMMIT
+
+  - label: Run argbash and ensure no changes haven't been generated
+    command: ./common/scripts/argbash_check.sh common/
+
+  - label: Test pipeline generation is generating valid YAML
+    command: 
+      - ./tests/yamllint.sh

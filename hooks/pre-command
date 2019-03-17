@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -euxo pipefail
+
+# Get the directory of the current plugin so that we can copy the common tools
+# into the plugin directory
+PLUGIN_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)/.."
+
+# Set the build directory to wherever the checkout path is
+BUILD_DIR=${BUILDKITE_BUILD_CHECKOUT_PATH:-$(pwd)}
+BUILDKITE_COMMON_DIR=${BUILD_DIR}/.buildkite/common
+
+cd "$PLUGIN_DIR"
+
+plugin_commit=$(git rev-parse HEAD)
+plugin_tag=$(git describe --exact-match HEAD 2>/dev/null || echo "NO_TAG")
+
+# Print plugin information for debugging purposes
+echo "Using private-oasis-buildkite-tools at tag ${plugin_tag} with the commit ${plugin_commit}"
+
+cd "$BUILD_DIR"
+
+# Ensure that this repository has no `.buildkite/common` directory
+buildkite_common_files_count=$(git ls-files .buildkite/common | wc -l)
+
+if [ "$buildkite_common_files_count" -ne 0 ]; then
+    echo "ERROR: Refusing to load the private-oasis-buildkite-tools plugin"
+    echo ""
+    echo "The private-oasis-buildkite-tools plugin cannot be used"
+    echo "because there's a .buildkite/common directory checked into it."
+    exit 1
+fi
+
+# Automatically clean up anything in the .buildkite/common directory
+rm -rf "${BUILD_DIR}/.buildkite/common"
+
+# Download the oasis common buildkite tools into the .buildkite/common directory
+cp -r "${PLUGIN_DIR}/common" "${BUILDKITE_COMMON_DIR}"
+
+# Propagate plugin version into the common directory. This is used by generated
+# pipelines that need to reference the common tools
+echo "${plugin_commit}" > "${BUILDKITE_COMMON_DIR}/VERSION"
+
+# Create a .gitignore just in case the buildkite steps attempt to do things like `git add .`
+cat <<EOF > "${BUILDKITE_COMMON_DIR}/.gitignore"
+# Ignore all files in this directory
+*
+EOF
+
+# This should always remain at the bottom of this script
+# Ensure that we're at the buildkite directory otherwise buildkite will execute
+# the command based on the last working directory of this script
+cd "$BUILD_DIR"
