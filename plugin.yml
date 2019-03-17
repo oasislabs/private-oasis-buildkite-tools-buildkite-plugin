@@ -1,0 +1,3 @@
+name: private-oasis-buildkite-tools
+description: Downloads a set of common buildkite tools into the repository's working directory at .buildkite/common
+author: https://github.com/oasislabs

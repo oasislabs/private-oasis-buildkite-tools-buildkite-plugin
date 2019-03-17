@@ -1,0 +1,6 @@
+# yamllint configuration
+extends: default
+
+rules:
+  # Don't fail if the lines in the generated files are too long. Just warn.
+  line-length: disable
