@@ -11,6 +11,7 @@
 
 # ARG_OPTIONAL_BOOLEAN([output-only],[],[Do not call buildkite. Used for testing])
 # ARG_OPTIONAL_SINGLE([deployment-branches],[],[Branches to deploy],[master])
+# ARG_OPTIONAL_SINGLE([private-ops-deployment-branch],[],[Branch of private-ops to use for generic deploys],[master])
 # ARG_POSITIONAL_SINGLE([name],[name of the project])
 # ARG_POSITIONAL_SINGLE([deployment-environment],[target environment for deployment])
 # ARG_POSITIONAL_SINGLE([cloud-provider],[target cloud provider for deployment])
@@ -46,12 +47,13 @@ _positionals=()
 # THE DEFAULTS INITIALIZATION - OPTIONALS
 _arg_output_only="off"
 _arg_deployment_branches="master"
+_arg_private_ops_deployment_branch="master"
 
 
 print_help()
 {
 	printf '%s\n' "Generates a deployment trigger for a given chart to a given target"
-	printf 'Usage: %s [--(no-)output-only] [--deployment-branches <arg>] [-h|--help] <name> <deployment-environment> <cloud-provider> <region> <chart-name>\n' "$0"
+	printf 'Usage: %s [--(no-)output-only] [--deployment-branches <arg>] [--private-ops-deployment-branch <arg>] [-h|--help] <name> <deployment-environment> <cloud-provider> <region> <chart-name>\n' "$0"
 	printf '\t%s\n' "<name>: name of the project"
 	printf '\t%s\n' "<deployment-environment>: target environment for deployment"
 	printf '\t%s\n' "<cloud-provider>: target cloud provider for deployment"
@@ -59,6 +61,7 @@ print_help()
 	printf '\t%s\n' "<chart-name>: chart-name to deploy"
 	printf '\t%s\n' "--output-only, --no-output-only: Do not call buildkite. Used for testing (off by default)"
 	printf '\t%s\n' "--deployment-branches: Branches to deploy (default: 'master')"
+	printf '\t%s\n' "--private-ops-deployment-branch: Branch of private-ops to use for generic deploys (default: 'master')"
 	printf '\t%s\n' "-h, --help: Prints help"
 }
 
@@ -81,6 +84,14 @@ parse_commandline()
 				;;
 			--deployment-branches=*)
 				_arg_deployment_branches="${_key##--deployment-branches=}"
+				;;
+			--private-ops-deployment-branch)
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_arg_private_ops_deployment_branch="$2"
+				shift
+				;;
+			--private-ops-deployment-branch=*)
+				_arg_private_ops_deployment_branch="${_key##--private-ops-deployment-branch=}"
 				;;
 			-h|--help)
 				print_help
@@ -168,7 +179,7 @@ steps:
     build:
       message: "Deploy $CHART_NAME chart to $DEPLOYMENT_ENVIRONMENT"
       commit: "HEAD"
-      branch: "ravenac95/feature/generic-deploy"
+      branch: "$_arg_private_ops_deployment_branch"
       env:
         ENVIRONMENT: $DEPLOYMENT_ENVIRONMENT
         CLOUD_PROVIDER: $CLOUD_PROVIDER

@@ -21,11 +21,11 @@ steps:
   - label: Run a common script to setup gitconfig
     command: .buildkite/common/scripts/setup_gitconfig.sh
     plugins:
-      # v0.1.0 immediately below is the git ref of the plugin. You can also use
+      # v0.1.1 immediately below is the git ref of the plugin. You can also use
       # branches or commit SHA
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 
-      # Example: Using a branch 
+      # Example: Using a branch
       # Note: buildkite caches plugin downloads so this is not recommended
       # - private-oasis-buildkite-tools#some/feature/branch: ~
 
@@ -42,7 +42,7 @@ steps:
   - label: Generate a set of generic checks
     command: .buildkite/common/pipelines/generic_checks.sh
     plugins:
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 This will then generate the following steps:
@@ -53,7 +53,7 @@ This will then generate the following steps:
 
 ## Available Common Scripts
 
-_Note: The examples show a plugin version of v0.1.0. You will want to use the
+_Note: The examples show a plugin version of v0.1.1. You will want to use the
 latest version instead._
 
 ### argbash_checks.sh
@@ -68,7 +68,7 @@ steps:
   - label: Run argbash check on directory1 and directory2
     command: .buildkite/common/scripts/argbash_checks.sh dir1/ dir2/
     plugins:
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### build_tag_push_build_image.sh
@@ -83,7 +83,7 @@ steps:
   - label: Build tag and push a docker image
     command: .buildkite/common/scripts/build_tag_push_build_image.sh dockerrepo/name path/to/dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### get_docker_tag.sh
@@ -111,7 +111,7 @@ steps:
           volumes:
             - .:/workdir
 
-      - oasislabs/private-oasis-buildkite-tools#v0.1.0: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### promote_docker_image_to.sh
@@ -134,7 +134,7 @@ steps:
     command:
       - .buildkite/common/scripts/promote_docker_image_to.sh dockerrepo/name latest
     plugins:
-      - oasislabs/private-oasis-buildkite-tools#v0.1.0: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### set_docker_tag_meta_data.sh
@@ -151,7 +151,7 @@ steps:
     branches: master
     command: .buildkite/common/scripts/set_docker_tag_meta_data.sh
     plugins:
-      - oasislabs/private-oasis-buildkite-tools#v0.1.0: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### setup_gitconfig.sh
@@ -179,7 +179,7 @@ steps:
 
 ## Available Common Pipelines
 
-_Note: The examples show a plugin version of v0.1.0. You will want to use the
+_Note: The examples show a plugin version of v0.1.1. You will want to use the
 latest version instead._
 
 ### deployment_trigger.sh
@@ -197,13 +197,13 @@ steps:
     command: >
       .buildkite/common/pipelines/deployment_trigger.sh
       --deployment-branches "master"
-      project-name 
+      project-name
       staging
-      aws 
+      aws
       us-west-2
       project-chart-name
     plugins:
-      - oasislabs/private-oasis-buildkite-tools#v0.1.0: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### generic_checks.sh
@@ -221,7 +221,7 @@ steps:
   - label: Generate a set of generic checks
     command: .buildkite/common/pipelines/generic_checks.sh
     plugins:
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### generic_docker_build_publish_and_deploy.sh
@@ -231,11 +231,11 @@ Generates a staging to production docker publishing and, optionally, deployment 
 1. Derive docker tag (using [set_docker_tag_meta_data.sh](#set_docker_tag_meta_datash))
 2. Build, tag, push a docker image for this build
 3. Promote the docker image to the `staging` docker tag
-4. If the `--trigger-deploy` flag is set, deploy the image to staging 
+4. If the `--trigger-deploy` flag is set, deploy the image to staging
    using the [generic deployment pipeline](https://buildkite.com/oasislabs/private-ops-deploy-any-chart/)
 5. Hold for a production promotion
 6. Promote the docker image to the `latest` docker tag
-7. If the `--trigger-deploy` flag is set, deploy the image to production 
+7. If the `--trigger-deploy` flag is set, deploy the image to production
    using the [generic deployment pipeline](https://buildkite.com/oasislabs/private-ops-deploy-any-chart/)
 
 This generic pipeline has many options. You can check out this repository and
@@ -253,13 +253,13 @@ $ common/pipelines/generic_docker_build_publish_and_deploy.sh --help
 ```
 steps:
   - label: Generate docker build and publish pipeline
-    command: > 
-      .buildkite/common/pipelines/generic_docker_build_publish_and_deploy.sh 
-      oasislabs/some-docker-repo 
-      some-chart-name 
+    command: >
+      .buildkite/common/pipelines/generic_docker_build_publish_and_deploy.sh
+      oasislabs/some-docker-repo
+      some-chart-name
       docker/Dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ##### Create a docker build, publish, and deployment pipeline
@@ -267,14 +267,14 @@ steps:
 ```
 steps:
   - label: Generate docker build and publish pipeline
-    command: > 
-      .buildkite/common/pipelines/generic_docker_build_publish_and_deploy.sh 
+    command: >
+      .buildkite/common/pipelines/generic_docker_build_publish_and_deploy.sh
       --trigger-deploy
-      oasislabs/some-docker-repo 
-      some-chart-name 
+      oasislabs/some-docker-repo
+      some-chart-name
       docker/Dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ##### Create a docker build, publish, and deployment pipeline that deploys to ops-staging and ops-production
@@ -282,14 +282,14 @@ steps:
 ```
 steps:
   - label: Generate docker build and publish pipeline
-    command: > 
-      .buildkite/common/pipelines/generic_docker_build_publish_and_deploy.sh 
+    command: >
+      .buildkite/common/pipelines/generic_docker_build_publish_and_deploy.sh
       --trigger-deploy
-      --staging-environment ops-staging 
+      --staging-environment ops-staging
       --production-environment ops-production
-      oasislabs/some-docker-repo 
-      some-chart-name 
+      oasislabs/some-docker-repo
+      some-chart-name
       docker/Dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.0: ~
+      - private-oasis-buildkite-tools#v0.1.1: ~
 ```
