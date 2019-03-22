@@ -39,6 +39,7 @@
 # ARG_OPTIONAL_SINGLE([chart-name],[],[Project's chart name if it's different than the name of the project])
 # ARG_OPTIONAL_SINGLE([tools-plugin-version],[],[The private-oasis-buildkite-tools plugin version to use for the generated steps. Defaults to using the PLUGIN_VERSION file in private-oasis-buildkite-tools])
 # ARG_OPTIONAL_SINGLE([deployment-branches],[],[Branches to deploy],[master])
+# ARG_OPTIONAL_SINGLE([private-ops-deployment-branch],[],[Branch of private-ops to use for generic deploys],[master])
 # ARG_OPTIONAL_SINGLE([docker-build-context-dir],[],[Where to set the docker build path. Defaults to the root of the repository],[.])
 # ARG_OPTIONAL_BOOLEAN([trigger-deploy],[],[Trigger deploys])
 # ARG_POSITIONAL_SINGLE([docker-repo],[Docker repo name])
@@ -86,6 +87,7 @@ _arg_region="us-west-2"
 _arg_chart_name=
 _arg_tools_plugin_version=
 _arg_deployment_branches="master"
+_arg_private_ops_deployment_branch="master"
 _arg_docker_build_context_dir="."
 _arg_trigger_deploy="off"
 _arg_output_only="off"
@@ -94,7 +96,7 @@ _arg_output_only="off"
 print_help()
 {
 	printf '%s\n' "Generates a generic deployment pipeline for a docker build"
-	printf 'Usage: %s [--staging-environment <arg>] [--staging-region <arg>] [--staging-cloud-provider <arg>] [--staging-chart-name <arg>] [--production-environment <arg>] [--production-region <arg>] [--production-cloud-provider <arg>] [--production-chart-name <arg>] [--cloud-provider <arg>] [--region <arg>] [--chart-name <arg>] [--tools-plugin-version <arg>] [--deployment-branches <arg>] [--docker-build-context-dir <arg>] [--(no-)trigger-deploy] [--(no-)output-only] [-h|--help] <docker-repo> <name> <dockerfile-path>\n' "$0"
+	printf 'Usage: %s [--staging-environment <arg>] [--staging-region <arg>] [--staging-cloud-provider <arg>] [--staging-chart-name <arg>] [--production-environment <arg>] [--production-region <arg>] [--production-cloud-provider <arg>] [--production-chart-name <arg>] [--cloud-provider <arg>] [--region <arg>] [--chart-name <arg>] [--tools-plugin-version <arg>] [--deployment-branches <arg>] [--private-ops-deployment-branch <arg>] [--docker-build-context-dir <arg>] [--(no-)trigger-deploy] [--(no-)output-only] [-h|--help] <docker-repo> <name> <dockerfile-path>\n' "$0"
 	printf '\t%s\n' "<docker-repo>: Docker repo name"
 	printf '\t%s\n' "<name>: name of the project"
 	printf '\t%s\n' "<dockerfile-path>: path to dockerfile"
@@ -111,6 +113,7 @@ print_help()
 	printf '\t%s\n' "--chart-name: Project's chart name if it's different than the name of the project (no default)"
 	printf '\t%s\n' "--tools-plugin-version: The private-oasis-buildkite-tools plugin version to use for the generated steps. Defaults to using the PLUGIN_VERSION file in private-oasis-buildkite-tools (no default)"
 	printf '\t%s\n' "--deployment-branches: Branches to deploy (default: 'master')"
+	printf '\t%s\n' "--private-ops-deployment-branch: Branch of private-ops to use for generic deploys (default: 'master')"
 	printf '\t%s\n' "--docker-build-context-dir: Where to set the docker build path. Defaults to the root of the repository (default: '.')"
 	printf '\t%s\n' "--trigger-deploy, --no-trigger-deploy: Trigger deploys (off by default)"
 	printf '\t%s\n' "--output-only, --no-output-only: Do not call buildkite. Used for testing (off by default)"
@@ -228,6 +231,14 @@ parse_commandline()
 				;;
 			--deployment-branches=*)
 				_arg_deployment_branches="${_key##--deployment-branches=}"
+				;;
+			--private-ops-deployment-branch)
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_arg_private_ops_deployment_branch="$2"
+				shift
+				;;
+			--private-ops-deployment-branch=*)
+				_arg_private_ops_deployment_branch="${_key##--private-ops-deployment-branch=}"
 				;;
 			--docker-build-context-dir)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
@@ -391,6 +402,7 @@ cat << EOF >> "$pipeline_file"
     branches: $_arg_deployment_branches
     command: >
       .buildkite/common/pipelines/deployment_trigger.sh
+      --private-ops-deployment-branch $_arg_private_ops_deployment_branch
       --deployment-branches "$_arg_deployment_branches"
       $NAME
       $STAGING_ENVIRONMENT
@@ -429,11 +441,13 @@ EOF
 if [[ $_arg_trigger_deploy = on ]]; then
 
 cat << EOF >> "$pipeline_file"
+  - wait
 
   - label: Generate deployment trigger step for a deployment to $PRODUCTION_ENVIRONMENT
     branches: $_arg_deployment_branches
     command: >
       .buildkite/common/pipelines/deployment_trigger.sh
+      --private-ops-deployment-branch $_arg_private_ops_deployment_branch
       --deployment-branches "$_arg_deployment_branches"
       $NAME
       $PRODUCTION_ENVIRONMENT
