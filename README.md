@@ -71,7 +71,7 @@ steps:
       - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
-### build_tag_push_build_image.sh
+### build_tag_push_image.sh
 
 Build, tag, and push a docker image. This script assumes that a
 `build_image_tag` buildkite meta-data value has been set.
@@ -81,7 +81,7 @@ Build, tag, and push a docker image. This script assumes that a
 ```
 steps:
   - label: Build tag and push a docker image
-    command: .buildkite/common/scripts/build_tag_push_build_image.sh dockerrepo/name path/to/dockerfile
+    command: .buildkite/common/scripts/build_tag_push_image.sh dockerrepo/name path/to/dockerfile
     plugins:
       - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
