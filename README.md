@@ -86,6 +86,21 @@ steps:
       - private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
+### ci_deploys_enabled.sh
+
+Checks if deploys are enabled for a specific environment. Has a non-zero exit
+code if the requested environment's deploys are paused.
+
+#### Example Pipeline Usage
+
+```
+steps:
+  - label: Check that ci deploys are enabled on staging
+    command: .buildkite/common/scripts/ci_deploys_enabled.sh staging
+    plugins:
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
+```
+
 ### get_docker_tag.sh
 
 Utility script to determine the value to use for a docker tag. You should
@@ -116,16 +131,16 @@ steps:
 
 ### promote_docker_image_to.sh
 
-Promotes a `build_image_tag` to a different tag. `build_image_tag` is assumed
-to be set in the buildkite meta-data. For our purposes, the `build_image_tag`
-is considered an immutable tag. Only a single `docker push` should ever be
-made to that tag. This script allows us to promote the `build_image_tag` to
-one of the mutable tags that we use. The mutable tags we use are `staging`
-and `latest`. Setting these tags allows us to track which images _should_ be
-deployed to staging (using the `staging` tag) or production (using the
-`latest` tag).
+Promotes a docker tag to a different docker tag. If no, `--from-image-tag` is
+set, the `build_image_tag` is assumed to be set in the buildkite meta-data.
+For our purposes, the `build_image_tag` is considered an immutable tag. Only
+a single `docker push` should ever be made to that tag. This script allows us
+to promote the `build_image_tag` (or any other tag) to one of the mutable
+tags that we use. The mutable tags we use are `staging` and `latest`. Setting
+these tags allows us to track which images _should_ be deployed to staging
+(using the `staging` tag) or production (using the `latest` tag).
 
-#### Example Pipeline Usage
+#### Example Pipeline Usage (promote `build_image_tag` to `latest`)
 
 ```
 steps:
@@ -133,6 +148,18 @@ steps:
     branches: master
     command:
       - .buildkite/common/scripts/promote_docker_image_to.sh dockerrepo/name latest
+    plugins:
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
+```
+
+#### Example Pipeline Usage (promote `staging` to `latest`)
+
+```
+steps:
+  - label: ":rocket: Publish docker container to production (latest)"
+    branches: master
+    command:
+      - .buildkite/common/scripts/promote_docker_image_to.sh --from-image-tag staging dockerrepo/name latest
     plugins:
       - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
