@@ -122,6 +122,7 @@ steps:
           always_pull: true
           workdir: /workdir
           volumes:
+            - /var/lib/buildkite-agent/.ssh:/root/.ssh
             - .:/workdir
 
       - oasislabs/private-oasis-buildkite-tools#${tools_plugin_version}: ~
