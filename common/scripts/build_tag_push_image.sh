@@ -5,7 +5,7 @@
 #
 # Usage:
 #
-#    $ ./build_tag_push_build_image.sh <docker-repo> <dockerfile-path>
+#    $ ./build_tag_push_image.sh <docker-repo> <dockerfile-path> <docker-build-context-dir>
 ##
 
 # Helpful tips on writing build scripts:

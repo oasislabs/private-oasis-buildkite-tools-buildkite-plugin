@@ -23,14 +23,14 @@ steps:
     plugins:
       # v0.1.1 immediately below is the git ref of the plugin. You can also use
       # branches or commit SHA
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 
       # Example: Using a branch
       # Note: buildkite caches plugin downloads so this is not recommended
-      # - private-oasis-buildkite-tools#some/feature/branch: ~
+      # - oasislabs/private-oasis-buildkite-tools#some/feature/branch: ~
 
       # Example: Using a commit
-      # - private-oasis-buildkite-tools#ece9352e4da33e70ed6cf4e72cde22058d35d638: ~
+      # - oasislabs/private-oasis-buildkite-tools#ece9352e4da33e70ed6cf4e72cde22058d35d638: ~
 ```
 
 ### Using a generic pipeline
@@ -42,7 +42,7 @@ steps:
   - label: Generate a set of generic checks
     command: .buildkite/common/pipelines/generic_checks.sh
     plugins:
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 This will then generate the following steps:
@@ -68,10 +68,10 @@ steps:
   - label: Run argbash check on directory1 and directory2
     command: .buildkite/common/scripts/argbash_checks.sh dir1/ dir2/
     plugins:
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
-### build_tag_push_build_image.sh
+### build_tag_push_image.sh
 
 Build, tag, and push a docker image. This script assumes that a
 `build_image_tag` buildkite meta-data value has been set.
@@ -81,9 +81,9 @@ Build, tag, and push a docker image. This script assumes that a
 ```
 steps:
   - label: Build tag and push a docker image
-    command: .buildkite/common/scripts/build_tag_push_build_image.sh dockerrepo/name path/to/dockerfile
+    command: .buildkite/common/scripts/build_tag_push_image.sh dockerrepo/name path/to/dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### ci_deploys_enabled.sh
@@ -248,7 +248,7 @@ steps:
   - label: Generate a set of generic checks
     command: .buildkite/common/pipelines/generic_checks.sh
     plugins:
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ### generic_docker_build_publish_and_deploy.sh
@@ -286,7 +286,7 @@ steps:
       some-chart-name
       docker/Dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ##### Create a docker build, publish, and deployment pipeline
@@ -301,7 +301,7 @@ steps:
       some-chart-name
       docker/Dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```
 
 ##### Create a docker build, publish, and deployment pipeline that deploys to ops-staging and ops-production
@@ -318,5 +318,5 @@ steps:
       some-chart-name
       docker/Dockerfile
     plugins:
-      - private-oasis-buildkite-tools#v0.1.1: ~
+      - oasislabs/private-oasis-buildkite-tools#v0.1.1: ~
 ```

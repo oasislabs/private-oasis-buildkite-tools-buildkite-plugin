@@ -385,7 +385,7 @@ steps:
   - label: Build and publish $NAME docker container for staging
     branches: $_arg_deployment_branches
     command:
-      - .buildkite/common/scripts/build_tag_push_build_image.sh $DOCKER_REPO $DOCKERFILE_PATH $DOCKER_BUILD_CONTEXT_DIR
+      - .buildkite/common/scripts/build_tag_push_image.sh $DOCKER_REPO $DOCKERFILE_PATH $DOCKER_BUILD_CONTEXT_DIR
       - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO staging
     plugins:
       - oasislabs/private-oasis-buildkite-tools#${tools_plugin_version}: ~
