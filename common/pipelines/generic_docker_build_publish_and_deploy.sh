@@ -374,17 +374,10 @@ fi
 
 cat << EOF > "$pipeline_file"
 steps:
-  - label: Get docker tag and save it as metadata for use later
-    branches: $_arg_deployment_branches
-    command: .buildkite/common/scripts/set_docker_tag_meta_data.sh
-    plugins:
-      - oasislabs/private-oasis-buildkite-tools#${tools_plugin_version}: ~
-
-  - wait
-
-  - label: Build and publish $NAME docker container for staging
-    branches: $_arg_deployment_branches
+  - label: Tag, build, and publish $NAME docker container for staging
+    branches: "$_arg_deployment_branches"
     command:
+      - .buildkite/common/scripts/set_docker_tag_meta_data.sh
       - .buildkite/common/scripts/build_tag_push_image.sh $DOCKER_REPO $DOCKERFILE_PATH $DOCKER_BUILD_CONTEXT_DIR
       - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO staging
     plugins:
@@ -399,7 +392,7 @@ cat << EOF >> "$pipeline_file"
   - wait
 
   - label: Generate deployment trigger step for a deployment to $STAGING_ENVIRONMENT
-    branches: $_arg_deployment_branches
+    branches: "$_arg_deployment_branches"
     command: >
       .buildkite/common/pipelines/deployment_trigger.sh
       --private-ops-deployment-branch $_arg_private_ops_deployment_branch
@@ -419,7 +412,7 @@ cat << EOF >> "$pipeline_file"
   - wait
 
   - block: Human approval required to promote $NAME to production
-    branches: $_arg_deployment_branches
+    branches: "$_arg_deployment_branches"
     prompt: |
       Clicking "OK" below will unblock this step and
       permit the deployment to production.
@@ -430,7 +423,7 @@ cat << EOF >> "$pipeline_file"
       - The Friendly Oasis Labs Robo
 
   - label: ":rocket: Publish $NAME docker container to production"
-    branches: $_arg_deployment_branches
+    branches: "$_arg_deployment_branches"
     command:
       - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO latest
     plugins:
@@ -444,7 +437,7 @@ cat << EOF >> "$pipeline_file"
   - wait
 
   - label: Generate deployment trigger step for a deployment to $PRODUCTION_ENVIRONMENT
-    branches: $_arg_deployment_branches
+    branches: "$_arg_deployment_branches"
     command: >
       .buildkite/common/pipelines/deployment_trigger.sh
       --private-ops-deployment-branch $_arg_private_ops_deployment_branch
