@@ -174,7 +174,7 @@ fi
 cat << EOF > "$pipeline_file"
 steps:
   - label: Trigger $NAME ($CHART_NAME chart) deployment to $DEPLOYMENT_ENVIRONMENT
-    branches: $_arg_deployment_branches
+    branches: "$_arg_deployment_branches"
     trigger: private-ops-deploy-any-chart
     build:
       message: "Deploy $CHART_NAME chart to $DEPLOYMENT_ENVIRONMENT"
