@@ -44,5 +44,8 @@ yamllint_generated_pipeline generic_docker_build_publish_and_deploy docker_repo 
 # Test generic_docker_build_publish_and_deploy with the --trigger-deploy flag
 yamllint_generated_pipeline generic_docker_build_publish_and_deploy --trigger-deploy docker_repo name dockerfile_path
 
+# Test generic_docker_build_publish_and_deploy with the --trigger-deploy flag
+yamllint_generated_pipeline generic_docker_build_publish_and_deploy --docker-build-arg SOME=test docker_repo name dockerfile_path
+
 # Test deployment_trigger
 yamllint_generated_pipeline deployment_trigger name deployment_env cloud_provider region chart_name

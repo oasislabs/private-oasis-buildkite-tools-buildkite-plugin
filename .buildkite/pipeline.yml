@@ -7,5 +7,16 @@ steps:
     command: ./common/scripts/argbash_check.sh common/
 
   - label: Test pipeline generation is generating valid YAML
-    command: 
+    command:
       - ./tests/yamllint.sh
+
+  - label: Test build_tag_push_image.sh
+    command: >
+      ./common/scripts/build_tag_push_image.sh
+      --no-push
+      --docker-build-arg TEST1_ARG=testvalue
+      --docker-build-arg TEST2_ARG=testvalue
+      --build-image-tag test
+      not-a-real-docker-repo
+      tests/fake-docker-project/Dockerfile
+      tests/fake-docker-project/
