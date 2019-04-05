@@ -41,6 +41,7 @@
 # ARG_OPTIONAL_SINGLE([deployment-branches],[],[Branches to deploy],[master])
 # ARG_OPTIONAL_SINGLE([private-ops-deployment-branch],[],[Branch of private-ops to use for generic deploys],[master])
 # ARG_OPTIONAL_SINGLE([docker-build-context-dir],[],[Where to set the docker build path. Defaults to the root of the repository],[.])
+# ARG_OPTIONAL_REPEATED([docker-build-arg],[],[Build args for docker])
 # ARG_OPTIONAL_BOOLEAN([trigger-deploy],[],[Trigger deploys])
 # ARG_POSITIONAL_SINGLE([docker-repo],[Docker repo name])
 # ARG_POSITIONAL_SINGLE([name],[name of the project])
@@ -89,6 +90,7 @@ _arg_tools_plugin_version=
 _arg_deployment_branches="master"
 _arg_private_ops_deployment_branch="master"
 _arg_docker_build_context_dir="."
+_arg_docker_build_arg=()
 _arg_trigger_deploy="off"
 _arg_output_only="off"
 
@@ -96,7 +98,7 @@ _arg_output_only="off"
 print_help()
 {
 	printf '%s\n' "Generates a generic deployment pipeline for a docker build"
-	printf 'Usage: %s [--staging-environment <arg>] [--staging-region <arg>] [--staging-cloud-provider <arg>] [--staging-chart-name <arg>] [--production-environment <arg>] [--production-region <arg>] [--production-cloud-provider <arg>] [--production-chart-name <arg>] [--cloud-provider <arg>] [--region <arg>] [--chart-name <arg>] [--tools-plugin-version <arg>] [--deployment-branches <arg>] [--private-ops-deployment-branch <arg>] [--docker-build-context-dir <arg>] [--(no-)trigger-deploy] [--(no-)output-only] [-h|--help] <docker-repo> <name> <dockerfile-path>\n' "$0"
+	printf 'Usage: %s [--staging-environment <arg>] [--staging-region <arg>] [--staging-cloud-provider <arg>] [--staging-chart-name <arg>] [--production-environment <arg>] [--production-region <arg>] [--production-cloud-provider <arg>] [--production-chart-name <arg>] [--cloud-provider <arg>] [--region <arg>] [--chart-name <arg>] [--tools-plugin-version <arg>] [--deployment-branches <arg>] [--private-ops-deployment-branch <arg>] [--docker-build-context-dir <arg>] [--docker-build-arg <arg>] [--(no-)trigger-deploy] [--(no-)output-only] [-h|--help] <docker-repo> <name> <dockerfile-path>\n' "$0"
 	printf '\t%s\n' "<docker-repo>: Docker repo name"
 	printf '\t%s\n' "<name>: name of the project"
 	printf '\t%s\n' "<dockerfile-path>: path to dockerfile"
@@ -115,6 +117,7 @@ print_help()
 	printf '\t%s\n' "--deployment-branches: Branches to deploy (default: 'master')"
 	printf '\t%s\n' "--private-ops-deployment-branch: Branch of private-ops to use for generic deploys (default: 'master')"
 	printf '\t%s\n' "--docker-build-context-dir: Where to set the docker build path. Defaults to the root of the repository (default: '.')"
+	printf '\t%s\n' "--docker-build-arg: Build args for docker (empty by default)"
 	printf '\t%s\n' "--trigger-deploy, --no-trigger-deploy: Trigger deploys (off by default)"
 	printf '\t%s\n' "--output-only, --no-output-only: Do not call buildkite. Used for testing (off by default)"
 	printf '\t%s\n' "-h, --help: Prints help"
@@ -248,6 +251,14 @@ parse_commandline()
 			--docker-build-context-dir=*)
 				_arg_docker_build_context_dir="${_key##--docker-build-context-dir=}"
 				;;
+			--docker-build-arg)
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_arg_docker_build_arg+=("$2")
+				shift
+				;;
+			--docker-build-arg=*)
+				_arg_docker_build_arg+=("${_key##--docker-build-arg=}")
+				;;
 			--no-trigger-deploy|--trigger-deploy)
 				_arg_trigger_deploy="on"
 				test "${1:0:5}" = "--no-" && _arg_trigger_deploy="off"
@@ -372,13 +383,21 @@ if [[ -z $PRODUCTION_CHART_NAME ]]; then
   PRODUCTION_CHART_NAME="$CHART_NAME"
 fi
 
+docker_build_args_str=""
+if [[ ! -z ${_arg_docker_build_arg-} ]]; then
+    for build_arg in "${_arg_docker_build_arg[@]}"
+    do
+        docker_build_args_str+="--docker-build-arg ${build_arg} "
+    done
+fi
+
 cat << EOF > "$pipeline_file"
 steps:
   - label: Tag, build, and publish $NAME docker container for staging
     branches: "$_arg_deployment_branches"
     command:
       - .buildkite/common/scripts/set_docker_tag_meta_data.sh
-      - .buildkite/common/scripts/build_tag_push_image.sh $DOCKER_REPO $DOCKERFILE_PATH $DOCKER_BUILD_CONTEXT_DIR
+      - .buildkite/common/scripts/build_tag_push_image.sh $docker_build_args_str $DOCKER_REPO $DOCKERFILE_PATH $DOCKER_BUILD_CONTEXT_DIR
       - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO staging
     plugins:
       - oasislabs/private-oasis-buildkite-tools#${tools_plugin_version}: ~
