@@ -118,7 +118,7 @@ steps:
     command: .buildkite/common/scripts/lint_git.sh
     plugins:
       - docker#v2.0.0:
-          image: "oasislabs/testing:0.2.0"
+          image: "oasislabs/gitlint:1.0.0"
           always_pull: true
           workdir: /workdir
           volumes:
