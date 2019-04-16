@@ -1,1 +1,9 @@
 _extends: private-global-settings
+
+collaborators:
+  - username: ravenac95
+    permission: admin
+  - username: ptrus
+    permission: admin
+  - username: tjanez
+    permission: admin
