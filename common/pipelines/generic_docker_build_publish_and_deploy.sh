@@ -30,10 +30,12 @@
 # ARG_OPTIONAL_SINGLE([staging-region],[],[Project's target staging environment. Defaults to region])
 # ARG_OPTIONAL_SINGLE([staging-cloud-provider],[],[Project's target staging cloud provider. Overrides cloud-provider])
 # ARG_OPTIONAL_SINGLE([staging-chart-name],[],[Project's staging chart name. Overrides chart-name])
+# ARG_OPTIONAL_SINGLE([staging-docker-tag-target],[],[Project's staging docker tag target],[staging])
 # ARG_OPTIONAL_SINGLE([production-environment],[],[Project's target production environment],[production])
 # ARG_OPTIONAL_SINGLE([production-region],[],[Project's target production region. Overrides region])
 # ARG_OPTIONAL_SINGLE([production-cloud-provider],[],[Project's target production cloud-provider. Overrides cloud-provider])
 # ARG_OPTIONAL_SINGLE([production-chart-name],[],[Project's production chart name. Overrides chart-name])
+# ARG_OPTIONAL_SINGLE([production-docker-tag-target],[],[Project's staging docker tag target],[latest])
 # ARG_OPTIONAL_SINGLE([cloud-provider],[],[Project's deployment region],[aws])
 # ARG_OPTIONAL_SINGLE([region],[],[Project's deployment region],[us-west-2])
 # ARG_OPTIONAL_SINGLE([chart-name],[],[Project's chart name if it's different than the name of the project])
@@ -79,10 +81,12 @@ _arg_staging_environment="staging"
 _arg_staging_region=
 _arg_staging_cloud_provider=
 _arg_staging_chart_name=
+_arg_staging_docker_tag_target="staging"
 _arg_production_environment="production"
 _arg_production_region=
 _arg_production_cloud_provider=
 _arg_production_chart_name=
+_arg_production_docker_tag_target="latest"
 _arg_cloud_provider="aws"
 _arg_region="us-west-2"
 _arg_chart_name=
@@ -98,7 +102,7 @@ _arg_output_only="off"
 print_help()
 {
 	printf '%s\n' "Generates a generic deployment pipeline for a docker build"
-	printf 'Usage: %s [--staging-environment <arg>] [--staging-region <arg>] [--staging-cloud-provider <arg>] [--staging-chart-name <arg>] [--production-environment <arg>] [--production-region <arg>] [--production-cloud-provider <arg>] [--production-chart-name <arg>] [--cloud-provider <arg>] [--region <arg>] [--chart-name <arg>] [--tools-plugin-version <arg>] [--deployment-branches <arg>] [--private-ops-deployment-branch <arg>] [--docker-build-context-dir <arg>] [--docker-build-arg <arg>] [--(no-)trigger-deploy] [--(no-)output-only] [-h|--help] <docker-repo> <name> <dockerfile-path>\n' "$0"
+	printf 'Usage: %s [--staging-environment <arg>] [--staging-region <arg>] [--staging-cloud-provider <arg>] [--staging-chart-name <arg>] [--staging-docker-tag-target <arg>] [--production-environment <arg>] [--production-region <arg>] [--production-cloud-provider <arg>] [--production-chart-name <arg>] [--production-docker-tag-target <arg>] [--cloud-provider <arg>] [--region <arg>] [--chart-name <arg>] [--tools-plugin-version <arg>] [--deployment-branches <arg>] [--private-ops-deployment-branch <arg>] [--docker-build-context-dir <arg>] [--docker-build-arg <arg>] [--(no-)trigger-deploy] [--(no-)output-only] [-h|--help] <docker-repo> <name> <dockerfile-path>\n' "$0"
 	printf '\t%s\n' "<docker-repo>: Docker repo name"
 	printf '\t%s\n' "<name>: name of the project"
 	printf '\t%s\n' "<dockerfile-path>: path to dockerfile"
@@ -106,10 +110,12 @@ print_help()
 	printf '\t%s\n' "--staging-region: Project's target staging environment. Defaults to region (no default)"
 	printf '\t%s\n' "--staging-cloud-provider: Project's target staging cloud provider. Overrides cloud-provider (no default)"
 	printf '\t%s\n' "--staging-chart-name: Project's staging chart name. Overrides chart-name (no default)"
+	printf '\t%s\n' "--staging-docker-tag-target: Project's staging docker tag target (default: 'staging')"
 	printf '\t%s\n' "--production-environment: Project's target production environment (default: 'production')"
 	printf '\t%s\n' "--production-region: Project's target production region. Overrides region (no default)"
 	printf '\t%s\n' "--production-cloud-provider: Project's target production cloud-provider. Overrides cloud-provider (no default)"
 	printf '\t%s\n' "--production-chart-name: Project's production chart name. Overrides chart-name (no default)"
+	printf '\t%s\n' "--production-docker-tag-target: Project's staging docker tag target (default: 'latest')"
 	printf '\t%s\n' "--cloud-provider: Project's deployment region (default: 'aws')"
 	printf '\t%s\n' "--region: Project's deployment region (default: 'us-west-2')"
 	printf '\t%s\n' "--chart-name: Project's chart name if it's different than the name of the project (no default)"
@@ -163,6 +169,14 @@ parse_commandline()
 			--staging-chart-name=*)
 				_arg_staging_chart_name="${_key##--staging-chart-name=}"
 				;;
+			--staging-docker-tag-target)
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_arg_staging_docker_tag_target="$2"
+				shift
+				;;
+			--staging-docker-tag-target=*)
+				_arg_staging_docker_tag_target="${_key##--staging-docker-tag-target=}"
+				;;
 			--production-environment)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
 				_arg_production_environment="$2"
@@ -194,6 +208,14 @@ parse_commandline()
 				;;
 			--production-chart-name=*)
 				_arg_production_chart_name="${_key##--production-chart-name=}"
+				;;
+			--production-docker-tag-target)
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_arg_production_docker_tag_target="$2"
+				shift
+				;;
+			--production-docker-tag-target=*)
+				_arg_production_docker_tag_target="${_key##--production-docker-tag-target=}"
 				;;
 			--cloud-provider)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
@@ -393,12 +415,12 @@ fi
 
 cat << EOF > "$pipeline_file"
 steps:
-  - label: Tag, build, and publish $NAME docker container for staging
+  - label: Tag, build, and publish $NAME docker container for staging (tag: $_arg_staging_docker_tag_target)
     branches: "$_arg_deployment_branches"
     command:
       - .buildkite/common/scripts/set_docker_tag_meta_data.sh
       - .buildkite/common/scripts/build_tag_push_image.sh $docker_build_args_str $DOCKER_REPO $DOCKERFILE_PATH $DOCKER_BUILD_CONTEXT_DIR
-      - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO staging
+      - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO $_arg_staging_docker_tag_target
     plugins:
       - oasislabs/private-oasis-buildkite-tools#${tools_plugin_version}: ~
 EOF
@@ -441,10 +463,10 @@ cat << EOF >> "$pipeline_file"
       clicking this button.
       - The Friendly Oasis Labs Robo
 
-  - label: ":rocket: Publish $NAME docker container to production"
+  - label: ":rocket: Publish $NAME docker container to production (tag: $_arg_production_docker_tag_target)"
     branches: "$_arg_deployment_branches"
     command:
-      - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO latest
+      - .buildkite/common/scripts/promote_docker_image_to.sh $DOCKER_REPO $_arg_production_docker_tag_target
     plugins:
       - oasislabs/private-oasis-buildkite-tools#${tools_plugin_version}: ~
 EOF
