@@ -415,7 +415,7 @@ fi
 
 cat << EOF > "$pipeline_file"
 steps:
-  - label: Tag, build, and publish $NAME docker container for staging (tag: $_arg_staging_docker_tag_target)
+  - label: "Tag, build, and publish $NAME docker container for staging (tag: $_arg_staging_docker_tag_target)"
     branches: "$_arg_deployment_branches"
     command:
       - .buildkite/common/scripts/set_docker_tag_meta_data.sh
